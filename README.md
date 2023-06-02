@@ -6,6 +6,7 @@ Este é um algoritmo desenvolvido para transformar uma Gramática Livre de Conte
 
 A gramática livre de contexto utilizada como exemplo é a seguinte:
 
+f) <br>
 S -> AB | BCS <br>
 A -> aA | C <br>
 B -> bbB | b <br>
