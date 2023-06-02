@@ -6,10 +6,10 @@ Este é um algoritmo desenvolvido para transformar uma Gramática Livre de Conte
 
 A gramática livre de contexto utilizada como exemplo é a seguinte:
 
-S -> AB | BCS
-A -> aA | C
-B -> bbB | b
-C -> cC | λ
+-S -> AB | BCS
+-A -> aA | C
+-B -> bbB | b
+-C -> cC | λ
 
 ## Aluno
 
