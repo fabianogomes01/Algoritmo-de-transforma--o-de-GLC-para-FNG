@@ -1,72 +1,67 @@
-def transform_to_greibach(glc):
-    greibach = []  # Lista para armazenar as produções na FNG
-    nonterminals = list(glc.keys())  # Não terminais da GLC (cópia)
+def transformar_glc_para_fng(gramatica):
+    # Cria um novo símbolo inicial
+    nova_gramatica = ["S' -> " + gramatica[0].split('->')[0].strip()]
 
-    # Passo 1: Remover produções vazias
-    for nt, productions in glc.items():
-        if 'λ' in productions:
-            glc[nt].remove('λ')
-            for nt2, productions2 in glc.items():
-                glc[nt2] = [p.replace(nt, '') for p in productions2]
+    # Remove regras vazias
+    for regra in gramatica:
+        partes = regra.split('->')
+        nao_terminal = partes[0].strip()
+        corpos = partes[1].split('|')
 
-    # Passo 2: Remover produções unitárias
-    for nt in nonterminals:
-        unit_productions = [p for p in glc[nt] if len(p) == 1 and p.isupper()]
-        while unit_productions:
-            production = unit_productions.pop()
-            glc[nt].remove(production)
-            glc[nt] += glc[production]
-            unit_productions += [p for p in glc[production] if len(p) == 1 and p.isupper()]
+        for corpo in corpos:
+            if corpo.strip() != 'λ':
+                nova_gramatica.append(regra.strip())
 
-    # Passo 3: Introduzir variáveis auxiliares
-    i = 0  # Índice para as novas variáveis auxiliares
-    nonterminals = list(glc.keys())  # Atualizar a lista de não terminais
-    for nt in nonterminals:
-        productions = glc[nt]  # Produções do não terminal
-        new_productions = []
-        for production in productions:
-            if len(production) > 2:
-                new_nt = 'X' + str(i)  # Nova variável auxiliar
-                i += 1
-                new_productions.append(production[0] + new_nt)
-                for j in range(1, len(production) - 1):
-                    glc[new_nt] = [production[j] + 'X' + str(i)]
-                    i += 1
-                    new_nt = 'X' + str(i)  # Nova variável auxiliar
-                    i += 1
-                new_productions.append(production[-2] + production[-1])
-            else:
-                new_productions.append(production)
-        glc[nt] = new_productions
+    # Remove regras unitárias
+    regras_unitarias = []
+    for regra in nova_gramatica:
+        partes = regra.split('->')
+        if len(partes) == 2 and partes[1].strip().isupper():
+            regras_unitarias.append(regra.strip())
 
-    # Passo 4: Converter para FNG
-    nonterminals = list(glc.keys())  # Atualizar a lista de não terminais
-    for nt in nonterminals:
-        productions = glc[nt]  # Produções do não terminal
-        for production in productions:
-            if len(production) > 1 and production[0].islower():
-                new_nt = 'X' + str(i)  # Nova variável auxiliar
-                i += 1
-                glc[new_nt] = [production[1:]]
-                glc[nt] = [production[0] + new_nt]
+    while regras_unitarias:
+        regra_unitaria = regras_unitarias.pop(0)
+        partes = regra_unitaria.split('->')
+        nao_terminal = partes[0].strip()
+        nao_terminal_unitario = partes[1].strip()
 
-    # Construir a lista de produções na FNG
-    for nt, productions in glc.items():
-        for production in productions:
-            greibach.append(nt + ' -> ' + production)
+        for regra in nova_gramatica:
+            partes = regra.split('->')
+            if len(partes) == 2 and partes[0].strip() == nao_terminal_unitario:
+                nova_regra = nao_terminal + " -> " + partes[1].strip()
+                if nova_regra not in nova_gramatica:
+                    regras_unitarias.append(nova_regra)
+                    nova_gramatica.append(nova_regra)
 
-    return greibach
+    # Elimina símbolos inúteis
+    simbolos_utilizados = []
+    simbolos_utilizados.append(nova_gramatica[0].split('->')[0].strip())
+
+    for regra in nova_gramatica:
+        partes = regra.split('->')
+        nao_terminal = partes[0].strip()
+        corpos = partes[1].split('|')
+
+        for corpo in corpos:
+            for simbolo in corpo.strip().split():
+                if simbolo.isupper():
+                    simbolos_utilizados.append(simbolo)
+
+    nova_gramatica = [regra for regra in nova_gramatica if regra.split('->')[0].strip() in simbolos_utilizados]
+
+    nova_gramatica = [regra.replace("S'", simbolos_utilizados[0]) for regra in nova_gramatica]
+
+    return nova_gramatica
 
 
 # Exemplo de uso
-glc = {
-    'S': ['AB', 'BCS'],
-    'A': ['aA', 'C'],
-    'B': ['bbB', 'b'],
-    'C': ['cC', 'λ']
-}
+gramatica = [
+    "S -> AB | BCS",
+    "A -> aA | C",
+    "B -> bbB | b",
+    "C -> cC | λ"
+]
 
-fng = transform_to_greibach(glc)
-for production in fng:
-    print(production)
-
+fng = transformar_glc_para_fng(gramatica)
+for regra in fng:
+    print(regra)
